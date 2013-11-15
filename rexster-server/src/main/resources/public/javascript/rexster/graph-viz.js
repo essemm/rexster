@@ -38,13 +38,13 @@ define(
 
                 // Set Node and Edge styles.
                 Node: {
-                    overridable: true,
-                    color: "#c79801"
+                    overridable: true
+                    //color: "#c79801"
                 },
 
                 Edge: {
                     overridable: true,
-                    color: "#ffd800",
+                    // color: "#ffd800",
                     lineWidth: 1.5
                 },
 

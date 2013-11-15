@@ -68,6 +68,92 @@ define(
                 return this;
             },
             addVisualizationButton : function(){
+                function setNodeShapeAndColor(data) {
+                    // node types are ‘circle’, ‘triangle’, ‘rectangle’, ‘star’, ‘ellipse’ and ‘square’
+                    var nodeOrEdgeType = data.type;
+
+                    switch (nodeOrEdgeType) {
+                        // Vertices
+                        case "book":
+                            data["$type"] = "star";
+                            data["$color"] = "Crimson";
+                            break;
+                        case "course":
+                            data["$type"] = "circle";
+                            data["$color"] = "Thistle";
+                            break;
+                        case "concept":
+                            data["$type"] = "triangle";
+                            data["$color"] = "Mediumvioletred";
+                            break;
+                        case "module":
+                            data["$type"] = "rectangle";
+                            data["$color"] = "Orange";
+                            break;
+                        case "context":
+                            data["$type"] = "ellipse";
+                            data["$color"] = "Mediumspringgreen";
+                            break;
+                        case "taxonomy":
+                            data["$type"] = "square";
+                            data["$color"] = "Gold";
+                            break;
+                        case "taxon":
+                            data["$type"] = "circle";
+                            data["$color"] = "Deeppink";
+                            break;   
+
+                        case "song":
+                            data["$type"] = "star";
+                            data["$color"] = "Crimson";
+                            break;
+
+                        // Edges
+                        case "owns":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Slategray";
+                            break;
+                        case "extends":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Tomato";
+                            break;
+                        case "references":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Thistle";
+                            break;
+                        case "prerequisite":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Lightskyblue";
+                            break;
+                        case "contains":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Orange";
+                            break;
+                        case "taught_by":
+                        case "assessed_by":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Dodgerblue";
+                            break;
+                        case "can_recommend":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Lightgrey";
+                            break;
+                        case "tags":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Lawngreen";
+                            break;
+
+                        case "followed_by":
+                            data["$type"] = "arrow";
+                            data["$color"] = "Lawngreen";
+                            break;
+
+                    }
+
+                    return data;
+
+                };
+
                 addButton("Visualize", "ui-icon ui-icon-zoomin", function(event) {
                     event.preventDefault();
                     var uri = $(this).attr('href');
@@ -95,10 +181,12 @@ define(
 
                     ajax.getVertexBoth(graphName, selectedVertexIdentifier, function(results) {
                         var jitGraphData = _(results.results).map(function(n) {
+                           
+
                             return {
                                 id : "" + n._id,
-                                name : "" + n._id,
-                                data : n,
+                                name : "" + n.name,
+                                data : setNodeShapeAndColor(n),
                                 adjacencies: [
                                     selectedVertexIdentifier
                                 ]
@@ -108,9 +196,9 @@ define(
                         ajax.getVertexElement(graphName, selectedVertexIdentifier, function(results){
                             jitGraphData = _([{
                                 id:"" + results.results._id,
-                                name:"" + results.results._id,
+                                name:"" + results.results.name,
                                 adjacencies:[],
-                                data:results.results
+                                data:setNodeShapeAndColor(results.results),
                                 }]).union(jitGraphData);
                         },null, false);
 
@@ -121,8 +209,8 @@ define(
                                         var jitDataToSum = _(results.results).map(function(n) {
                                             return {
                                                 id : "" + n._id,
-                                                name : "" + n._id,
-                                                data : n,
+                                                name : "" + n.name,
+                                                data : setNodeShapeAndColor(n),
                                                 adjacencies: [
                                                     "" + node.data._id
                                                 ]
@@ -131,9 +219,9 @@ define(
 
                                         jitDataToSum = _([{
                                             id:"" + node.data._id,
-                                            name:"" + node.data._id,
+                                            name:"" + node.data.name,
                                             adjacencies:[],
-                                            data:node
+                                            data:setNodeShapeAndColor(node),
                                             }]).union(jitDataToSum);
 
                                         viz.sum(jitDataToSum);
