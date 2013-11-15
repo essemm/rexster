@@ -68,11 +68,12 @@ define(
                 return this;
             },
             addVisualizationButton : function(){
-                function setNodeShapeAndColor(data) {
+                function setNodeShapeAndColor(nodeType) {
                     // node types are ‘circle’, ‘triangle’, ‘rectangle’, ‘star’, ‘ellipse’ and ‘square’
-                    var nodeOrEdgeType = data.type;
-
-                    switch (nodeOrEdgeType) {
+                    // var nodeOrEdgeType = data.type;
+                    data = {};
+                    data["type"] = nodeType;
+                    switch (nodeType) {
                         // Vertices
                         case "book":
                             data["$type"] = "star";
@@ -180,25 +181,33 @@ define(
                     });
 
                     ajax.getVertexBoth(graphName, selectedVertexIdentifier, function(results) {
-                        var jitGraphData = _(results.results).map(function(n) {
-                           
+                        id = 0;
+                        groupedGraph = _(results.results).reduce(function(types, n) { 
+                            if (!types[n.type])
+                                types[n.type] = 0
 
+                            types[n.type] += 1;
+
+                            return types;
+                        }, {});
+
+                        var jitGraphData = _(groupedGraph).map(function(n,t) {
                             return {
-                                id : "" + n._id,
-                                name : "" + n.name,
-                                data : setNodeShapeAndColor(n),
+                                id : id++,
+                                name : "" + t + "(" + n + ")",
+                                data : setNodeShapeAndColor(t),
                                 adjacencies: [
                                     selectedVertexIdentifier
                                 ]
                             };
-                        });
+                        }); 
 
                         ajax.getVertexElement(graphName, selectedVertexIdentifier, function(results){
                             jitGraphData = _([{
                                 id:"" + results.results._id,
                                 name:"" + results.results.name,
                                 adjacencies:[],
-                                data:setNodeShapeAndColor(results.results),
+                                data:setNodeShapeAndColor(results.results.type),
                                 }]).union(jitGraphData);
                         },null, false);
 
