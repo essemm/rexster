@@ -26,17 +26,10 @@
         
         if (settings) $.extend(config, settings);
         
-        if(settings["titanik"]) {
-            this.each(function(key, element) {
-                format_titanik_value(element, config['jsonName'], config['jsonData'], config);
-            });
-        }
-        else {
-            this.each(function(key, element) {
+        this.each(function(key, element) {
                 format_value(element, config['jsonName'], config['jsonData'], config, config['showToolbar']);
-            });
-        }
-        
+        });
+               
         return this;
 
     };
@@ -89,61 +82,14 @@
 	        else {
 	            var content = $('<div/>');
 	            $(content).appendTo(container);
-	            $(content).css({ 'overflow': 'hidden', 'white-space': 'nowrap' });
+	            $(content).addClass(config.overrideCss.content + ' ui-corner-bottom')
+                    .css({ 'white-space': 'nowrap', 'padding': config['innerPadding'] });
 	            $(content).text(name + ': ' + data);
 	        }
     	}
     };
 
-    function format_titanik_value(element, name, data, config) {
-        //debug('name=' + name + "; data=" + data);
-
-        // we don't want to render metadata in the json viewer.  these are standard rexster properties that
-        // would muddy up the view.  one exception is $alpha which seems to be a jit related bit of meta data
-        // that gets injected at render time of the visualization.
-        var isMetaData = name === "_type" || (name === "_id" && !config['showId']) || name === "_outV" || name === "_inV" || name === "_label" || name === "$alpha";
-
-        if (!isMetaData) {
-            var v = new TypeHandler(data);
-            var typePrefix = v.type().charAt(0);
-            var container = $('<div/>');
-            $(container).appendTo(element);
-            $(container).addClass('json-widget').css({'padding': config['outerPadding'], 'padding-left': config['ident'] });
-
-            var header = $('<div/>');
-            $(header).appendTo(container);
-            $(header).addClass(config.overrideCss.header + ' ui-corner-top')
-                .css({ 'cursor': 'hand', //'float': 'left',
-                    'text-align': 'left'
-                });
-            $(header).text('' + name);
-            
-            $(header).click(function(event) {
-                $(header).next().toggleClass('ui-helper-hidden');
-                return false;
-            });
-            
-            var content = $('<div/>');
-            $(content).appendTo(container);
-            $(content).addClass(config.overrideCss.content + ' ui-corner-bottom')
-                .css({ 'white-space': 'nowrap', 'padding': config['innerPadding'] });
-            
-            // highlight on hover
-            if (config.highlight === true) {
-                $(content).hover(function(event) {
-                    $(content).children().toggleClass(config.overrideCss.highlight);
-                });
-            }
-
-            for (name in data) { 
-                var content = $('<div/>');
-                $(content).appendTo(container);
-                $(content).css({ 'overflow': 'hidden', 'white-space': 'nowrap' });
-                $(content).text(name + ': ' + data);
-            }
-        }
-    };
-
+    //
 
     // number, boolean, string, object, array, date
     function TypeHandler(value) {

@@ -68,6 +68,54 @@ define(
                 return this;
             },
             addVisualizationButton : function(){
+                function onListElementClick(element, viz) {
+                    return function(){
+                        ajax.getVertexBoth(graphName, element._id, function (results) {
+                            groupedGraph = _(results.results).reduce(function(types, n) { 
+                                if (!types[n.type]) {
+                                    types[n.type] = [];
+                                }
+
+                                types[n.type].push(n);
+
+                                return types;
+                            }, {});
+
+                            var jitGraphData = _(groupedGraph).map(function(n,t) {
+                                return {
+                                    id : id++,
+                                    name : "" + t + "(" + n.length + ")",
+                                    data : setNodeShapeAndColor(t,n),
+                                    adjacencies: [
+                                        element._id
+                                    ]
+                                };
+                            }); 
+
+                            ajax.getVertexElement(graphName, element._id, function(results){
+                                jitGraphData = _([{
+                                    id:"" + results.results._id,
+                                    name:"" + results.results.name,
+                                    adjacencies:[],
+                                    data:setNodeShapeAndColor(results.results.type),
+                                    }]).union(jitGraphData);
+                            },null, false);
+
+                            viz = new graphViz("dialogGraphVizMain", jitGraphData, viz.handlers);
+                            viz.animate()
+                            
+                        },
+                        function (jqXHR, textStatus, errorThrown) {
+                        }
+                        );
+                    }
+                }
+
+                function toggleHighlight(element) {
+                    return function(){
+                        $('this').toggleClass("json-widget-highlight");
+                    }
+                }
                 function setNodeShapeAndColor(type, elements) {
                     // node types are ‘circle’, ‘triangle’, ‘rectangle’, ‘star’, ‘ellipse’ and ‘square’
 
@@ -248,20 +296,37 @@ define(
                             onNodeClick : function(node) {
                                 $("#dialogGraphVizRight").empty();
 
-                                var metaDataLabel = "Type:[" + node.data._type + "] ID:[" + node.data._id + "]";
+                                div_element = $("#dialogGraphVizRight");
+                                container = $('<div/>');
+                                $(container).appendTo(div_element);
+                                $(container).addClass('json-widget').css({'padding': "4px" });
 
-                                $("#dialogGraphVizRight").jsonviewer({
-                                    "titanik": true,
-                                    "jsonName": metaDataLabel,
-                                    "jsonData": node.data.elements, // here
-                                    "outerPadding":"0px",
-                                    "showToolbar" : false,
-                                    "overrideCss" : {
-                                        // "highlight":"json-widget-highlight-vertex",
-                                        "header":"json-widget-header-vertex",
-                                        "content" :"json-widget-content-vertex"
-                                    }
-                                });
+                                header = $('<div/>');
+                                $(header).appendTo(container);
+                                $(header).addClass('json-widget-header' + ' ui-corner-top')
+                                    .css({ 'cursor': 'hand', //'float': 'left',
+                                        'text-align': 'center'
+                                    });
+                                $(header).text(element.type + ": " + element.name + " -> Type: " + node.data.type);
+                                
+                                // $(header).click(function(event) {
+                                //     $(header).next().toggleClass('ui-helper-hidden');
+                                //     return false;
+                                // });
+                                                                
+                                for (i = 0; i < node.data.elements.length; i++) { 
+                                    // content = $('<div/>', {
+                                    //             id: i })
+                                  
+                                    content = $(document.createElement('div'));
+                                    content.hover(toggleHighlight());
+                                    content.text(node.data.elements[i]._id  + ': ' + node.data.elements[i].name);
+                                    content.addClass("json-widget-content" + ' ui-corner-bottom').css({ 'white-space': 'nowrap' });
+                                    content.click(onListElementClick(node.data.elements[i], viz));
+                                    content.appendTo(container);
+                                
+                                  
+                                }
                             },
                             onEdgeClick : function(nodeFrom, nodeTo){
                                 $("#dialogGraphVizRight").empty();
