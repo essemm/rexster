@@ -101,7 +101,10 @@ define(
                                     }]).union(jitGraphData);
                             },null, false);
 
-                            viz = new graphViz("dialogGraphVizMain", jitGraphData, viz.handlers);
+                            // viz = new graphViz("dialogGraphVizMain", jitGraphData, viz.handlers);
+                            handlers = viz.handlers; 
+                            viz.reset();
+                            viz = new graphViz("dialogGraphVizMain", jitGraphData, handlers);
                             viz.animate()
                             
                         },
