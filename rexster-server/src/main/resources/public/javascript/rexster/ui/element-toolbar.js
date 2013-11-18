@@ -287,6 +287,9 @@ define(
                             data["$color"] = "Lawngreen";
                             break;
 
+                        default: 
+                            data["$type"] = "circle"; 
+                            data["$color"] = "Lawngreen";
                     }
 
                     return data;
