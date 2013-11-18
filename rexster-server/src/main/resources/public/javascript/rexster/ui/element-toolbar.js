@@ -102,9 +102,94 @@ define(
                             },null, false);
 
                             // viz = new graphViz("dialogGraphVizMain", jitGraphData, viz.handlers);
-                            handlers = viz.handlers; 
+                            var handles = {
+                            onNodeRightClick : function(node) {
+                                ajax.getVertexBoth(graphName, node.data._id, function (results) {
+                                        var jitDataToSum = _(results.results).map(function(n) {
+                                            return {
+                                                id : "" + n._id,
+                                                name : "" + n.name,
+                                                data : setNodeShapeAndColor(n),
+                                                adjacencies: [
+                                                    "" + node.data._id
+                                                ]
+                                            };
+                                        });
+
+                                        jitDataToSum = _([{
+                                            id:"" + node.data._id,
+                                            name:"" + node.data.name,
+                                            adjacencies:[],
+                                            data:setNodeShapeAndColor(node),
+                                            }]).union(jitDataToSum);
+
+                                        viz.sum(jitDataToSum);
+                                        viz.centerOnComplete("" + node.data._id);
+                                    },
+                                    function (jqXHR, textStatus, errorThrown) {
+                                    }
+                                );
+                            },
+                            onNodeClick : function(node) {
+                                $("#dialogGraphVizRight").empty();
+
+                                div_element = $("#dialogGraphVizRight");
+                                container = $('<div/>');
+                                $(container).appendTo(div_element);
+                                $(container).addClass('json-widget').css({'padding': "4px" });
+
+                                header = $('<div/>');
+                                $(header).appendTo(container);
+                                $(header).addClass('json-widget-header' + ' ui-corner-top')
+                                    .css({ 'cursor': 'hand', //'float': 'left',
+                                        'text-align': 'center'
+                                    });
+                                $(header).text(element.type + ": " + element.name + " -> Type: " + node.data.type);
+                                
+                                // $(header).click(function(event) {
+                                //     $(header).next().toggleClass('ui-helper-hidden');
+                                //     return false;
+                                // });
+                                                                
+                                for (i = 0; i < node.data.elements.length; i++) { 
+                                    // content = $('<div/>', {
+                                    //             id: i })
+                                  
+                                    content = $(document.createElement('div'));
+                                    content.hover(toggleHighlight());
+                                    content.text(node.data.elements[i]._id  + ': ' + node.data.elements[i].name);
+                                    content.addClass("json-widget-content" + ' ui-corner-bottom').css({ 'white-space': 'nowrap' });
+                                    content.click(onListElementClick(node.data.elements[i], viz));
+                                    content.appendTo(container);
+                                
+                                  
+                                }
+                            },
+                            onEdgeClick : function(nodeFrom, nodeTo){
+                                $("#dialogGraphVizRight").empty();
+
+                                ajax.getVertexEdges(graphName, nodeFrom.id, function(result){
+                                    _(_(result.results).filter(function(e){ return e._inV == nodeTo.id || e._outV == nodeTo.id; })).each(function(e){
+                                        $("#dialogGraphVizRight").append("<div/>");
+
+                                        var metaDataLabel = "Type:[" + e._type + "] ID:[" + e._id + "]"  + " In:[" + e._inV + "] Out:[" + e._outV + "] Label:[" + e._label + "]";
+                                        $("#dialogGraphVizRight").children().last().jsonviewer({
+                                            "jsonName": metaDataLabel,
+                                            "jsonData": e,
+                                            "outerPadding":"0px",
+                                            "showToolbar" : false,
+                                            "overrideCss" : {
+                                                "highlight":"json-widget-highlight-vertex",
+                                                "header":"json-widget-header-vertex",
+                                                "content" :"json-widget-content-vertex"
+                                            }
+                                        });
+                                    });
+                                })
+                            }
+                        };
                             viz.reset();
-                            viz = new graphViz("dialogGraphVizMain", jitGraphData, handlers);
+                            viz = new graphViz("dialogGraphVizMain", jitGraphData, handles);
                             viz.animate()
                             
                         },
