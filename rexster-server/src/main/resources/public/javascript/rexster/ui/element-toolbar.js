@@ -68,16 +68,18 @@ define(
                 return this;
             },
             addVisualizationButton : function(){
-                function setNodeShapeAndColor(nodeType) {
+                function setNodeShapeAndColor(type, elements) {
                     // node types are ‘circle’, ‘triangle’, ‘rectangle’, ‘star’, ‘ellipse’ and ‘square’
-                    // var nodeOrEdgeType = data.type;
+
                     data = {};
-                    data["type"] = nodeType;
-                    switch (nodeType) {
+                    data["type"] = type;
+                    data["elements"] = elements;
+
+                    switch (type) {
                         // Vertices
                         case "book":
-                            data["$type"] = "star";
-                            data["$color"] = "Crimson";
+                            data["$type"] = "rectangle";
+                            data["$color"] = "Orange";
                             break;
                         case "course":
                             data["$type"] = "circle";
@@ -183,10 +185,13 @@ define(
                     ajax.getVertexBoth(graphName, selectedVertexIdentifier, function(results) {
                         id = 0;
                         groupedGraph = _(results.results).reduce(function(types, n) { 
-                            if (!types[n.type])
-                                types[n.type] = 0
+                            if (!types[n.type]) {
+                                //types[n.type] = 0
+                                types[n.type] = [];
+                            }
 
-                            types[n.type] += 1;
+                            // types[n.type] += 1;
+                            types[n.type].push(n);
 
                             return types;
                         }, {});
@@ -194,8 +199,8 @@ define(
                         var jitGraphData = _(groupedGraph).map(function(n,t) {
                             return {
                                 id : id++,
-                                name : "" + t + "(" + n + ")",
-                                data : setNodeShapeAndColor(t),
+                                name : "" + t + "(" + n.length + ")",
+                                data : setNodeShapeAndColor(t,n),
                                 adjacencies: [
                                     selectedVertexIdentifier
                                 ]
@@ -246,12 +251,13 @@ define(
                                 var metaDataLabel = "Type:[" + node.data._type + "] ID:[" + node.data._id + "]";
 
                                 $("#dialogGraphVizRight").jsonviewer({
+                                    "titanik": true,
                                     "jsonName": metaDataLabel,
-                                    "jsonData": node.data,
+                                    "jsonData": node.data.elements, // here
                                     "outerPadding":"0px",
                                     "showToolbar" : false,
                                     "overrideCss" : {
-                                        "highlight":"json-widget-highlight-vertex",
+                                        // "highlight":"json-widget-highlight-vertex",
                                         "header":"json-widget-header-vertex",
                                         "content" :"json-widget-content-vertex"
                                     }
